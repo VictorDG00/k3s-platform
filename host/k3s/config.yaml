@@ -1,0 +1,24 @@
+# k3s server config. Copied to /etc/rancher/k3s/config.yaml by install.sh, which
+# refuses to run if the installed file differs from this one.
+# Options: https://docs.k3s.io/cli/server
+
+write-kubeconfig-mode: "0600"
+node-name: node-1
+
+# Packaged components disabled on purpose:
+#  - traefik / servicelb: the host's own reverse proxy is the single entry
+#    point, there is no LoadBalancer.
+#  - local-storage: storage is an explicit decision (see terraform/10-platform/
+#    storage.tf: local-path-provisioner with reclaimPolicy Retain).
+disable:
+  - traefik
+  - servicelb
+  - local-storage
+
+# Encrypt Secrets at rest in the datastore. Consequence: the datastore backup
+# must include server/cred/encryption-config.json (see docs/restore.md).
+secrets-encryption: true
+
+# Cluster/service CIDRs are left at the k3s defaults. Check they do not collide
+# with Docker bridges, LXD, VPNs or anything else on your host; if they do, set
+# cluster-cidr and service-cidr explicitly here.

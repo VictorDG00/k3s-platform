@@ -1,0 +1,15 @@
+# PLACEHOLDER. Generate a real one with:
+#   kubectl -n example-app create secret generic example-app --from-literal=KEY=value --dry-run=client -o yaml \
+#     | kubeseal --controller-name sealed-secrets-controller --controller-namespace sealed-secrets --format yaml
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: example-app
+  namespace: example-app
+spec:
+  encryptedData:
+    PLACEHOLDER: "<output of kubeseal>"
+  template:
+    metadata:
+      name: example-app
+      namespace: example-app

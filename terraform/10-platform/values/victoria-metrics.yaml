@@ -1,0 +1,15 @@
+# victoria-metrics-single 0.48.0 (app v1.153.0)
+server:
+  fullnameOverride: victoria-metrics # Service: victoria-metrics.monitoring.svc:8428
+  image:
+    tag: v1.153.0@sha256:5eff7af5341e401471002f58d106d399e614a62f3d240f2dbc21901e49eed5dd
+  retentionPeriod: 90d
+  persistentVolume:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+  resources:
+    requests: { cpu: 50m, memory: 256Mi }
+    limits: { memory: 512Mi }
+  service:
+    type: ClusterIP

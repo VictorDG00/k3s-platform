@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# NOTE: actions are pinned by major tag, not by full commit SHA, because this
+# snapshot was written without registry access to resolve SHAs. Pin them by SHA
+# (e.g. with `pinact`) before relying on this in a real pipeline.
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: fmt
+        run: terraform fmt -check -recursive
+      - name: validate
+        run: |
+          for root in terraform/10-platform terraform/20-apps; do
+            terraform -chdir="$root" init -backend=false -input=false
+            terraform -chdir="$root" validate
+          done
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - name: tflint
+        run: |
+          for root in terraform/10-platform terraform/20-apps; do
+            tflint --chdir="$root" --init
+            tflint --chdir="$root"
+          done
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

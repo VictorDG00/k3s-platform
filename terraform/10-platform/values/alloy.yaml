@@ -1,0 +1,44 @@
+# alloy 1.13.1 (app v1.20.1). Config in files/alloy.alloy (injected by Terraform).
+crds:
+  create: false # no Prometheus Operator
+
+image:
+  tag: v1.20.1
+  digest: sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
+
+controller:
+  type: daemonset # single node = one pod
+  volumes:
+    extra:
+      - { name: host-proc, hostPath: { path: /proc } }
+      - { name: host-sys, hostPath: { path: /sys } }
+      - { name: tmp, emptyDir: { sizeLimit: 64Mi } }
+      # Log positions + remote-write WAL: survive a pod restart.
+      - { name: alloy-data, hostPath: { path: /var/lib/rancher/k3s/storage/alloy-data, type: DirectoryOrCreate } }
+
+alloy:
+  enableReporting: false
+  storagePath: /var/lib/alloy
+  mounts:
+    extra:
+      - { name: host-proc, mountPath: /host/proc, readOnly: true }
+      - { name: host-sys, mountPath: /host/sys, readOnly: true }
+      - { name: tmp, mountPath: /tmp }
+      - { name: alloy-data, mountPath: /var/lib/alloy }
+  # Runs as root only because the state directory is a root-owned hostPath.
+  # No capabilities, read-only root filesystem. The host root ("/") is NOT
+  # mounted.
+  securityContext:
+    runAsUser: 0
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 768Mi }
+
+configReloader:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 64Mi }
